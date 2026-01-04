@@ -1,5 +1,9 @@
 #pragma once
 
+#define LILYGO_KB_SLAVE_ADDRESS             0x55
+#define LILYGO_KB_BRIGHTNESS_CMD            0x01
+#define LILYGO_KB_ALT_B_BRIGHTNESS_CMD      0x02
+
 #define BOARD_POWERON       10
 
 #define BOARD_I2S_WS        5
