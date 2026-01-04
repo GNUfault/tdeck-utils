@@ -64,8 +64,6 @@ void TDeck_init() {
     if (Wire.read() == -1) {
         TDeck_printf("Keyboard not found\n");
     }
-    
-    TDeck_setKeyboardBrightness(127);
 }
 
 void putc2(char c) {
@@ -152,7 +150,7 @@ char TDeck_getchar() {
     return 0;
 }
 
-void TDeck_setKeyboardBrightness(uint8_t value) {
+void TDeck_keyboard_backlight(uint8_t value) {
     Wire.beginTransmission(LILYGO_KB_SLAVE_ADDRESS);
     Wire.write(LILYGO_KB_BRIGHTNESS_CMD);
     Wire.write(value);
