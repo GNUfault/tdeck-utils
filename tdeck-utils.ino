@@ -43,14 +43,21 @@ void TDeck_init() {
 
     delay(500);
 
-    pinMode(BOARD_SDCARD_CS, OUTPUT);
     pinMode(RADIO_CS_PIN, OUTPUT);
+    pinMode(BOARD_SDCARD_CS, OUTPUT);
     pinMode(BOARD_TFT_CS, OUTPUT);
     digitalWrite(BOARD_SDCARD_CS, HIGH);
     digitalWrite(RADIO_CS_PIN, HIGH);
     digitalWrite(BOARD_TFT_CS, HIGH);
     pinMode(BOARD_SPI_MISO, INPUT_PULLUP);
     SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+
+    SD.begin(BOARD_SDCARD_CS);
+
+    audio.setPinout(BOARD_I2S_BCK, BOARD_I2S_WS, BOARD_I2S_DOUT);
+    audio.setVolume(10); 
+
+    TDeck_set_volume(current_volume);
 
     tft.init();
     tft.setRotation(1);
@@ -70,15 +77,6 @@ void TDeck_init() {
     if (Wire.read() == -1) {
         TDeck_printf("Keyboard not found\n");
     }
-
-    SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
-    
-    SD.begin(BOARD_SDCARD_CS);
-
-    audio.setPinout(BOARD_I2S_BCK, BOARD_I2S_WS, BOARD_I2S_DOUT);
-    audio.setVolume(10); 
-
-    TDeck_set_volume(current_volume);
 }
 
 void putc2(char c) {
