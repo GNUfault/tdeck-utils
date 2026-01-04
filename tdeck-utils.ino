@@ -8,10 +8,6 @@
 #include "utilities.h"
 #include "tdeck-utils.h"
 
-#define LILYGO_KB_SLAVE_ADDRESS             0x55
-#define LILYGO_KB_BRIGHTNESS_CMD            0x01
-#define LILYGO_KB_ALT_B_BRIGHTNESS_CMD      0x02
-
 TFT_eSPI tft = TFT_eSPI();
 
 int cx = 0;
