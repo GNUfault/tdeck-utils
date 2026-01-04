@@ -1,11 +1,16 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <TFT_eSPI.h>
+#include <Wire.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include "utilities.h"
 #include "tdeck-utils.h"
+
+#define LILYGO_KB_SLAVE_ADDRESS             0x55
+#define LILYGO_KB_BRIGHTNESS_CMD            0x01
+#define LILYGO_KB_ALT_B_BRIGHTNESS_CMD      0x02
 
 TFT_eSPI tft = TFT_eSPI();
 
@@ -34,6 +39,9 @@ void scr() {
 void TDeck_init() {
     pinMode(BOARD_POWERON, OUTPUT);
     digitalWrite(BOARD_POWERON, HIGH);
+    
+    delay(500);
+    
     pinMode(BOARD_SDCARD_CS, OUTPUT);
     pinMode(RADIO_CS_PIN, OUTPUT);
     pinMode(BOARD_TFT_CS, OUTPUT);
@@ -53,6 +61,15 @@ void TDeck_init() {
     cy = 0;
     pinMode(BOARD_BL_PIN, OUTPUT);
     digitalWrite(BOARD_BL_PIN, HIGH);
+    
+    Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
+    
+    Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
+    if (Wire.read() == -1) {
+        TDeck_printf("Keyboard not found\n");
+    }
+    
+    TDeck_setKeyboardBrightness(127);
 }
 
 void putc2(char c) {
@@ -113,4 +130,23 @@ void TDeck_draw_rectangle(int x, int y, int w, int h, uint16_t color) {
 
 void TDeck_draw_triangle(int x1,int y1,int x2,int y2,int x3,int y3,uint16_t color) {
     tft.drawTriangle(x1,y1,x2,y2,x3,y3,color);
+}
+
+char TDeck_getchar() {
+    char keyValue = 0;
+    Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
+    while (Wire.available() > 0) {
+        keyValue = Wire.read();
+        if (keyValue != (char)0x00) {
+            return keyValue;
+        }
+    }
+    return 0;
+}
+
+void TDeck_setKeyboardBrightness(uint8_t value) {
+    Wire.beginTransmission(LILYGO_KB_SLAVE_ADDRESS);
+    Wire.write(LILYGO_KB_BRIGHTNESS_CMD);
+    Wire.write(value);
+    Wire.endTransmission();
 }
