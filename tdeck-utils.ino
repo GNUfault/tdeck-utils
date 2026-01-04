@@ -5,16 +5,21 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <SD.h>
+#include <FS.h>
+#include "Audio.h"
 #include "utilities.h"
 #include "tdeck-utils.h"
 
 TFT_eSPI tft = TFT_eSPI();
+Audio audio;
 
 int cx = 0;
 int cy = 0;
 int lh = 0;
 int cw = 0;
 uint16_t col = TFT_WHITE;
+uint8_t current_volume = 50;
 
 void upd() {
     lh = tft.fontHeight();
@@ -35,9 +40,9 @@ void scr() {
 void TDeck_init() {
     pinMode(BOARD_POWERON, OUTPUT);
     digitalWrite(BOARD_POWERON, HIGH);
-    
+
     delay(500);
-    
+
     pinMode(BOARD_SDCARD_CS, OUTPUT);
     pinMode(RADIO_CS_PIN, OUTPUT);
     pinMode(BOARD_TFT_CS, OUTPUT);
@@ -46,6 +51,7 @@ void TDeck_init() {
     digitalWrite(BOARD_TFT_CS, HIGH);
     pinMode(BOARD_SPI_MISO, INPUT_PULLUP);
     SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+
     tft.init();
     tft.setRotation(1);
     tft.fillScreen(TFT_BLACK);
@@ -57,13 +63,22 @@ void TDeck_init() {
     cy = 0;
     pinMode(BOARD_BL_PIN, OUTPUT);
     digitalWrite(BOARD_BL_PIN, HIGH);
-    
+
     Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
-    
+
     Wire.requestFrom(LILYGO_KB_SLAVE_ADDRESS, 1);
     if (Wire.read() == -1) {
         TDeck_printf("Keyboard not found\n");
     }
+
+    SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+    
+    SD.begin(BOARD_SDCARD_CS);
+
+    audio.setPinout(BOARD_I2S_BCK, BOARD_I2S_WS, BOARD_I2S_DOUT);
+    audio.setVolume(10); 
+
+    TDeck_set_volume(current_volume);
 }
 
 void putc2(char c) {
@@ -165,4 +180,37 @@ void TDeck_font(uint8_t font) {
 void TDeck_font_size(uint8_t size) {
     tft.setTextSize(size);
     upd();
+}
+
+void TDeck_set_volume(uint8_t volume) {
+    if (volume > 100) volume = 100;
+    current_volume = volume;
+
+    uint8_t audioVolume = (volume * 21) / 100;
+    audio.setVolume(audioVolume);
+}
+
+bool TDeck_play_mp3(const char* filename) {
+    String path = "/";
+    path += filename;
+
+    if (!SD.exists(path)) {
+        TDeck_printf("File not found: %s\n", filename);
+        return false;
+    }
+
+    bool success = audio.connecttoSD(path.c_str());
+    return success;
+}
+
+void TDeck_stop_mp3() {
+    audio.stopSong();
+}
+
+bool TDeck_is_playing() {
+    return audio.isRunning();
+}
+
+void TDeck_audio_loop() {
+    audio.loop();
 }
