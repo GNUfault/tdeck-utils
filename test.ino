@@ -11,15 +11,18 @@ void setup() {
     
     TDeck_init();
 
+    TDeck_font_size(1);
     TDeck_printf_color(TFT_RED, "RED\n");
+    TDeck_font_size(2);
     TDeck_printf_color(TFT_GREEN, "GREEN\n");
+    TDeck_font_size(3);
     TDeck_printf_color(TFT_BLUE, "BLUE\n");
-    TDeck_printf("NORMAL\n");
 
     TDeck_draw_rectangle(sx, sy, sq, sq, TFT_BLUE);
     TDeck_draw_circle(cx, cy, 35, TFT_GREEN);
     TDeck_draw_triangle(cx, cy-25, cx-22, cy+15, cx+22, cy+15, TFT_RED);
 
+    TDeck_font_size(1);
 }
 
 void loop() {
