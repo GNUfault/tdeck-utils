@@ -8,6 +8,10 @@
 #include "utilities.h"
 #include "tdeck-utils.h"
 
+#define LILYGO_KB_SLAVE_ADDRESS             0x55
+#define LILYGO_KB_BRIGHTNESS_CMD            0x01
+#define LILYGO_KB_ALT_B_BRIGHTNESS_CMD      0x02
+
 TFT_eSPI tft = TFT_eSPI();
 
 int cx = 0;
@@ -116,16 +120,28 @@ void TDeck_printf_color(uint16_t color, const char *fmt, ...) {
     for (int i = 0; buf[i]; i++) putc2(buf[i]);
 }
 
-void TDeck_draw_circle(int x, int y, int r, uint16_t color) {
-    tft.drawCircle(x, y, r, color);
+void TDeck_draw_circle(int x, int y, int r, uint16_t color, int filled) {
+    if (filled) {
+        tft.fillCircle(x, y, r, color);
+    } else {
+        tft.drawCircle(x, y, r, color);
+    }
 }
 
-void TDeck_draw_rectangle(int x, int y, int w, int h, uint16_t color) {
-    tft.drawRect(x, y, w, h, color);
+void TDeck_draw_rectangle(int x, int y, int w, int h, uint16_t color, int filled) {
+    if (filled) {
+        tft.fillRect(x, y, w, h, color);
+    } else {
+        tft.drawRect(x, y, w, h, color);
+    }
 }
 
-void TDeck_draw_triangle(int x1,int y1,int x2,int y2,int x3,int y3,uint16_t color) {
-    tft.drawTriangle(x1,y1,x2,y2,x3,y3,color);
+void TDeck_draw_triangle(int x1,int y1,int x2,int y2,int x3,int y3,uint16_t color, int filled) {
+    if (filled) {
+        tft.fillTriangle(x1, y1, x2, y2, x3, y3, color);
+    } else {
+        tft.drawTriangle(x1, y1, x2, y2, x3, y3, color);
+    }
 }
 
 char TDeck_getchar() {
