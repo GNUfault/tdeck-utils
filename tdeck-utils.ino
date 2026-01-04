@@ -8,10 +8,6 @@
 #include "utilities.h"
 #include "tdeck-utils.h"
 
-#define LILYGO_KB_SLAVE_ADDRESS             0x55
-#define LILYGO_KB_BRIGHTNESS_CMD            0x01
-#define LILYGO_KB_ALT_B_BRIGHTNESS_CMD      0x02
-
 TFT_eSPI tft = TFT_eSPI();
 
 int cx = 0;
@@ -149,4 +145,14 @@ void TDeck_setKeyboardBrightness(uint8_t value) {
     Wire.write(LILYGO_KB_BRIGHTNESS_CMD);
     Wire.write(value);
     Wire.endTransmission();
+}
+
+void TDeck_font(uint8_t font) {
+    tft.setTextFont(font);
+    upd();
+}
+
+void TDeck_font_size(uint8_t size) {
+    tft.setTextSize(size);
+    upd();
 }
