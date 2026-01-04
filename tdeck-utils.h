@@ -11,6 +11,6 @@ void TDeck_draw_circle(int x, int y, int r, uint16_t color);
 void TDeck_draw_rectangle(int x, int y, int w, int h, uint16_t color);
 void TDeck_draw_triangle(int x1,int y1,int x2,int y2,int x3,int y3,uint16_t color);
 char TDeck_getchar();
-void TDeck_setKeyboardBrightness(uint8_t value);
+void TDeck_keyboard_backlight(uint8_t value);
 void TDeck_font(uint8_t font);
 void TDeck_font_size(uint8_t size);
