@@ -45,7 +45,7 @@ void TDeck_init() {
     tft.init();
     tft.setRotation(1);
     tft.fillScreen(TFT_BLACK);
-    tft.setTextFont(2);
+    tft.setTextFont(1);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextDatum(TL_DATUM);
     upd();
