@@ -46,7 +46,7 @@ void Display_init(void) {
     tft.fillScreen(TFT_BLACK);
 
     tft.setTextDatum(TL_DATUM);
-    tft.setTextFont(2);
+    tft.setTextFont(1);
 
     update_metrics();
 
