@@ -1,4 +1,4 @@
-#include "tdeck-utils.h"
+#include "tdeck-util.h"
 #include "utilities.h"
 #include <Arduino.h>
 #include <SPI.h>
@@ -8,93 +8,110 @@
 #include <string.h>
 
 static TFT_eSPI tft = TFT_eSPI();
+static int cx = 0;
+static int cy = 0;
+static int lh = 0;
+static int cw = 0;
+static uint16_t col = TFT_WHITE;
 
-static int cursor_x = 0;
-static int cursor_y = 0;
-static int line_height = 0;
-static int char_width = 0;
-
-static const int SCREEN_WIDTH = 320;
-static const int SCREEN_HEIGHT = 240;
-
-static void update_metrics(void) {
-    line_height = tft.fontHeight() + 2;
-    char_width  = tft.textWidth("W");
+static void upd(void) {
+    lh = tft.fontHeight();
+    cw = tft.textWidth("W");
 }
 
-void Display_init(void) {
+static void scr(void) {
+    int h = TFT_HEIGHT - lh;
+    int n = TFT_WIDTH * h;
+    uint16_t *buf = (uint16_t*) malloc(n * 2);
+    if (!buf) return;
+    tft.readRect(0, lh, TFT_WIDTH, h, buf);
+    tft.pushImage(0, 0, TFT_WIDTH, h, buf);
+    free(buf);
+    tft.fillRect(0, h, TFT_WIDTH, lh, TFT_BLACK);
+}
+
+void TDeck_init(void) {
     pinMode(BOARD_POWERON, OUTPUT);
     digitalWrite(BOARD_POWERON, HIGH);
-
     pinMode(BOARD_SDCARD_CS, OUTPUT);
     pinMode(RADIO_CS_PIN, OUTPUT);
     pinMode(BOARD_TFT_CS, OUTPUT);
-
     digitalWrite(BOARD_SDCARD_CS, HIGH);
     digitalWrite(RADIO_CS_PIN, HIGH);
     digitalWrite(BOARD_TFT_CS, HIGH);
-
     pinMode(BOARD_SPI_MISO, INPUT_PULLUP);
     SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
-
     tft.begin();
-    
-    pinMode(BOARD_BL_PIN, OUTPUT);
-    digitalWrite(BOARD_BL_PIN, HIGH);
-    
     tft.setRotation(1);
     tft.fillScreen(TFT_BLACK);
-
+    tft.setTextFont(2);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextDatum(TL_DATUM);
-    tft.setTextFont(1);
-
-    update_metrics();
-
-    cursor_x = 0;
-    cursor_y = 0;
+    upd();
+    cx = 0;
+    cy = 0;
+    pinMode(BOARD_BL_PIN, OUTPUT);
+    digitalWrite(BOARD_BL_PIN, HIGH);
 }
 
-static void put_char(char c) {
+static void putc2(char c) {
     if (c == '\n') {
-        cursor_x = 0;
-        cursor_y += line_height;
-
-        if (cursor_y + line_height > SCREEN_HEIGHT) {
-            cursor_y = 0;
-            tft.fillScreen(TFT_BLACK);
+        cx = 0;
+        cy += lh;
+        if (cy + lh > TFT_HEIGHT) {
+            scr();
+            cy = TFT_HEIGHT - lh;
         }
         return;
     }
-
     if (c == '\r') {
-        cursor_x = 0;
+        cx = 0;
         return;
     }
-
-    if (cursor_x + char_width > SCREEN_WIDTH) {
-        cursor_x = 0;
-        cursor_y += line_height;
-
-        if (cursor_y + line_height > SCREEN_HEIGHT) {
-            cursor_y = 0;
-            tft.fillScreen(TFT_BLACK);
+    if (cx + cw > TFT_WIDTH) {
+        cx = 0;
+        cy += lh;
+        if (cy + lh > TFT_HEIGHT) {
+            scr();
+            cy = TFT_HEIGHT - lh;
         }
     }
-
-    char buf[2] = {c, 0};
-    tft.drawString(buf, cursor_x, cursor_y);
-    cursor_x += char_width;
+    char b[2] = {c,0};
+    tft.setTextColor(col, TFT_BLACK);
+    tft.drawString(b, cx, cy);
+    cx += cw;
 }
 
-void Display_printf(const char *fmt, ...) {
-    char buffer[512];
+void TDeck_printf(const char *fmt, ...) {
+    col = TFT_WHITE;
+    char buf[512];
+    va_list a;
+    va_start(a, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, a);
+    va_end(a);
+    for (int i = 0; buf[i]; i++) putc2(buf[i]);
+}
 
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, args);
-    va_end(args);
+void TDeck_printf_color(uint16_t color, const char *fmt, ...) {
+    col = color;
+    char buf[512];
+    va_list a;
+    va_start(a, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, a);
+    va_end(a);
+    for (int i = 0; buf[i]; i++) putc2(buf[i]);
+}
 
-    for (int i = 0; buffer[i]; i++) {
-        put_char(buffer[i]);
-    }
+void TDeck_draw_circle(int x, int y, int r, uint16_t color) {
+    tft.drawCircle(x, y, r, color);
+}
+
+void TDeck_draw_rectangle(int x, int y, int w, int h, uint16_t color, int filled) {
+    if (filled) tft.fillRect(x, y, w, h, color);
+    else tft.drawRect(x, y, w, h, color);
+}
+
+void TDeck_draw_triangle(int x1,int y1,int x2,int y2,int x3,int y3,uint16_t color,int filled) {
+    if (filled) tft.fillTriangle(x1,y1,x2,y2,x3,y3,color);
+    else tft.drawTriangle(x1,y1,x2,y2,x3,y3,color);
 }
