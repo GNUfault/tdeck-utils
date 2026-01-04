@@ -1,4 +1,4 @@
-#include "tdeck-util.h"
+#include "tdeck-utils.h"
 #include "utilities.h"
 #include <Arduino.h>
 #include <SPI.h>
