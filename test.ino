@@ -1,4 +1,4 @@
-#include "tdeck.h"
+#include "tdeck-utils.h"
 
 void setup() {
     Display_init();
