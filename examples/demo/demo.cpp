@@ -1,4 +1,4 @@
-#include "tdeck-utils.h"
+#include <tdeck-utils.h>
 
 void setup() {
     TDeck_init();
